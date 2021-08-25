@@ -20,11 +20,22 @@ enum {
     a4, b4, c4, d4, e4, f4, g4, h4,
     a3, b3, c3, d3, e3, f3, g3, h3,
     a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1
+    a1, b1, c1, d1, e1, f1, g1, h1, 
+    no_square=-1
 };
-enum { white, black };
+
+enum { white, black, both };
+
+enum { wk = 1, wq = 2, bk = 4, bq = 8 };
+
+enum { P, N, B, R, Q, K, p, n, b, r, q, k };
+
+
 
 extern const char *squares_to_coordinates[];
+extern const char *ascii_pieces;
+extern const char *unicode_pieces[];
+extern const int ascii_to_piece[]; 
 
 // Constants
 extern const U64 not_a_file;

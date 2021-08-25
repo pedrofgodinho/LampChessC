@@ -16,3 +16,22 @@ const char *squares_to_coordinates[] =
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 };
 
+const char *ascii_pieces = "PNBRQKpnbrqk";
+
+const char *unicode_pieces[] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟︎", "♞", "♝", "♜", "♛", "♚"};
+
+const int ascii_to_piece[] = {
+    ['P'] = P,
+    ['N'] = N,
+    ['B'] = B,
+    ['R'] = R,
+    ['Q'] = Q,
+    ['K'] = K,
+    ['p'] = p,
+    ['n'] = n,
+    ['b'] = b,
+    ['r'] = r,
+    ['q'] = q,
+    ['k'] = k
+};
+
