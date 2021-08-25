@@ -272,9 +272,6 @@ int main()
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     
     print_board(1);
-    print_bitboard(occupancies[white]);
-    print_bitboard(occupancies[black]);
-    print_bitboard(occupancies[both]);
     
     return 0;
 }
