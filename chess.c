@@ -24,19 +24,14 @@ int main()
 {
 
     init_tables();
-
-    /*
-    for (int square = 0; square < 64; square++)
-    {
-        print_bitboard(rook_masks[square]);
-    }
-    */
-
-    U64 bitboard = 0ULL;
-    set_bit(bitboard, e4);
-
-    print_bitboard(bitboard);
-    printf("%d\n", get_lsb_index(bitboard));
+    
+    U64 occupancy = 0ULL;
+    print_bitboard(occupancy);
+    set_bit(occupancy, d2);
+    set_bit(occupancy, c4);
+    set_bit(occupancy, d6);
+    set_bit(occupancy, g4);
+    print_bitboard(get_rook_attacks(d4, occupancy));
 
 
     return 0;
