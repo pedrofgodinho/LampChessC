@@ -8,8 +8,10 @@
 #define get_bit(bitboard, square) (bitboard & (1ULL << square))
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define unset_bit(bitboard, square) (bitboard &= ~(1ULL << square))
+#define count_bits(bitboard) __builtin_popcountll(bitboard)
+#define get_lsb_index(bitboard) count_bits((bitboard & -bitboard) - 1)
 
-// Enums
+// Enum for human readable names for squares
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -22,6 +24,7 @@ enum {
 };
 enum { white, black };
 
+extern const char *squares_to_coordinates[];
 /*
 "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
@@ -38,6 +41,5 @@ extern const U64 not_a_file;
 extern const U64 not_h_file;
 extern const U64 not_hg_file;
 extern const U64 not_ab_file;
-
 
 #endif
