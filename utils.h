@@ -9,7 +9,7 @@
 #define set_bit(bitboard, square) (bitboard |= (1ULL << square))
 #define unset_bit(bitboard, square) (bitboard &= ~(1ULL << square))
 #define count_bits(bitboard) __builtin_popcountll(bitboard)
-#define get_lsb_index(bitboard) count_bits((bitboard & -bitboard) - 1)
+#define get_lsb_index(bitboard) __builtin_ffsll(bitboard) - 1
 
 // Enum for human readable names for squares
 enum {

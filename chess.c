@@ -36,7 +36,7 @@ int main()
     set_bit(bitboard, e4);
 
     print_bitboard(bitboard);
-    printf("%s\n", squares_to_coordinates[get_lsb_index(bitboard)]);
+    printf("%d\n", get_lsb_index(bitboard));
 
 
     return 0;
