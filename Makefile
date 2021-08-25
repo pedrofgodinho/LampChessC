@@ -1,14 +1,21 @@
-all: *.c *.h
-	gcc -oFast *.c *.h -o chess
+CC=gcc
+CFLAGS=-Wall -Wextra
+DEPS = tables.h utils.h
 
-debug: *.c *.h
-	gcc -g *.c *.h -o chess.debug
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-run: all
+chess: chess.o tables.o utils.o
+	$(CC) -o chess chess.o tables.o utils.o
+
+chess.debug: *.c *.h
+	$(CC) -g -o chess-debug chess.o tables.o utils.o
+
+run: chess
 	./chess
 
-run_debug: debug
+run_debug: chess.debug
 	./chess.debug
 
 clean:
-	rm -f chess chess.debug
+	rm -f chess chess.debug *.o
