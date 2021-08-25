@@ -8,13 +8,13 @@ DEPS = tables.h utils.h
 chess: chess.o tables.o utils.o
 	$(CC) -o chess chess.o tables.o utils.o
 
-chess.debug: *.c *.h
-	$(CC) -g -o chess-debug chess.o tables.o utils.o
+chess.debug: chess.o tables.o utils.o
+	$(CC) -g -o chess.debug chess.o tables.o utils.o
 
 run: chess
 	./chess
 
-run_debug: chess.debug
+run.debug: chess.debug
 	./chess.debug
 
 clean:
