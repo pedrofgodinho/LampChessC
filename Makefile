@@ -1,7 +1,7 @@
-all:
+all: *.c *.h
 	gcc -oFast *.c *.h -o chess
 
-debug:
+debug: *.c *.h
 	gcc -g *.c *.h -o chess.debug
 
 run: all
@@ -11,4 +11,4 @@ run_debug: debug
 	./chess.debug
 
 clean:
-	rm chess chess.debug
+	rm -f chess chess.debug
