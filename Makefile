@@ -11,5 +11,4 @@ run_debug: debug
 	./chess.debug
 
 clean:
-	rm chess
-	rm chess.debug
+	rm chess chess.debug
