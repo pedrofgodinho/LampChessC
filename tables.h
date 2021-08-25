@@ -1,7 +1,7 @@
 #ifndef TABLES_H
 #define TABLES_H
 
-#include "constants.h"
+#include "utils.h"
 
 // Precalculated Tables
 extern U64 pawn_attacks[2][64];

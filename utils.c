@@ -1,4 +1,4 @@
-#include "constants.h"
+#include "utils.h"
 
 const U64 not_a_file = 0xfefefefefefefefeULL;
 const U64 not_h_file = 0x7f7f7f7f7f7f7f7fULL;
