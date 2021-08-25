@@ -25,10 +25,13 @@ int main()
 
     init_tables();
 
+    /*
     for (int square = 0; square < 64; square++)
     {
         print_bitboard(rook_masks[square]);
     }
+    */
+
 
     return 0;
 }

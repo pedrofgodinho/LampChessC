@@ -93,6 +93,76 @@ U64 generate_rook_mask(int square)
     return attacks;
 }
 
+U64 generate_bishop_attack(int square, U64 occupancy)
+{
+    U64 attacks = 0ULL;
+    int r, f;
+    int tr = square / 8;
+    int tf = square % 8;
+
+    for (r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++) 
+    {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & occupancy)
+            break;
+    }
+    for (r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++) 
+    {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & occupancy)
+            break;
+    }
+    for (r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--) 
+    {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & occupancy)
+            break;
+    }
+    for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--) 
+    {
+        attacks |= (1ULL << (r * 8 + f));
+        if ((1ULL << (r * 8 + f)) & occupancy)
+            break;
+    }
+
+    return attacks;
+}
+
+U64 generate_rook_attack(int square, U64 occupancy)
+{
+    U64 attacks = 0ULL;
+    int r, f;
+    int tr = square / 8;
+    int tf = square % 8;
+
+    for (r = tr + 1; r <= 7; r++) 
+    {
+        attacks |= (1ULL << (r * 8 + tf));
+        if ((1ULL << (r * 8 + tf)) & occupancy)
+            break;
+    }
+    for (r = tr - 1; r >= 0; r--) 
+    {
+        attacks |= (1ULL << (r * 8 + tf));
+        if ((1ULL << (r * 8 + tf)) & occupancy)
+            break;
+    }
+    for (f = tf + 1; f <= 7; f++) 
+    {
+        attacks |= (1ULL << (tr * 8 + f));
+        if ((1ULL << (tr * 8 + f)) & occupancy)
+            break;
+    }
+    for (f = tf - 1; f >= 0; f--) 
+    {
+        attacks |= (1ULL << (tr * 8 + f));
+        if ((1ULL << (tr * 8 + f)) & occupancy)
+            break;
+    }
+
+    return attacks;
+}
+
 
 void init_leaper_tables()
 {
