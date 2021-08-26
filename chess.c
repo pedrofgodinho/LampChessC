@@ -101,18 +101,17 @@ void generate_moves()
     if (side == white)
     {
         // Pawn Moves
-        bitboard = bitboards[P];
-        while (bitboard)
+        for (bitboard = bitboards[P]; bitboard; unset_bit(bitboard, source_square))
         {
             source_square = get_ls1b_index(bitboard);
-            target_square = source_square - 8;
 
+            // Quiet Moves
+            target_square = source_square - 8;
             if (!get_bit(occupancies[both], target_square))
             {
                 // Promotion
                 if (target_square <= h8)
                 {
-                    // TODO move list
                     printf("Promote pawn %s\n", square_to_coordinates[source_square]);
                 }
                 else // Pawn pushes
@@ -125,24 +124,37 @@ void generate_moves()
                     }
                 }
             }
-            unset_bit(bitboard, source_square);
+
+            // Captures
+            for (attacks = get_pawn_attacks(side, source_square) & occupancies[black]; attacks; unset_bit(attacks, target_square))
+            {
+                target_square = get_ls1b_index(attacks);
+
+                if (target_square <= h8)
+                {
+                    printf("Promote and capture with pawn %s\n", square_to_coordinates[source_square]);
+                }
+                else 
+                {
+                    printf("Capture with pawn %s\n", square_to_coordinates[source_square]);
+                }
+            }
         }
     }
     else
     {
         // Pawn Moves
-        bitboard = bitboards[p];
-        while (bitboard)
+        for (bitboard = bitboards[p]; bitboard; unset_bit(bitboard, source_square))
         {
             source_square = get_ls1b_index(bitboard);
-            target_square = source_square + 8;
 
+            // Quiet Moves
+            target_square = source_square + 8;
             if (!get_bit(occupancies[both], target_square))
             {
                 // Promotion
                 if (target_square >= a1)
                 {
-                    // TODO move list
                     printf("Promote pawn %s\n", square_to_coordinates[source_square]);
                 }
                 else // Pawn pushes
@@ -155,7 +167,21 @@ void generate_moves()
                     }
                 }
             }
-            unset_bit(bitboard, source_square);
+
+            // Captures
+            for (attacks = get_pawn_attacks(side, source_square) & occupancies[white]; attacks; unset_bit(attacks, target_square))
+            {
+                target_square = get_ls1b_index(attacks);
+
+                if (target_square >= a1)
+                {
+                    printf("Promote and capture with pawn %s\n", square_to_coordinates[source_square]);
+                }
+                else 
+                {
+                    printf("Capture with pawn %s\n", square_to_coordinates[source_square]);
+                }
+            }
         }
     }
 }
@@ -358,8 +384,8 @@ int main()
     init_tables();
 
 
-    parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1234");
-    //parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1234");
+    parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPoP/R3K2R w KQkq - 0 1");
     //parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     side = black;
