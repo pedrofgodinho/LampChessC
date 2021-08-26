@@ -10,6 +10,7 @@
 #define unset_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
 #define count_bits(bitboard) __builtin_popcountll(bitboard)
 #define get_ls1b_index(bitboard) __builtin_ffsll(bitboard) - 1
+#define unset_ls1b(bitboard) ((bitboard) &= (bitboard) - 1)
 
 // Enum for human readable names for squares
 enum {
@@ -42,6 +43,10 @@ extern const U64 not_a_file;
 extern const U64 not_h_file;
 extern const U64 not_hg_file;
 extern const U64 not_ab_file;
+extern const U64 rank_2;
+extern const U64 rank_4;
+extern const U64 rank_5;
+extern const U64 rank_7;
 
 void die(char* msg);
 

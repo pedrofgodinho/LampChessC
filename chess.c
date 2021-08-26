@@ -100,87 +100,113 @@ void generate_moves()
     // Side dependent moves
     if (side == white)
     {
-        // Pawn Moves
-        for (bitboard = bitboards[P]; bitboard; unset_bit(bitboard, source_square))
+        // Quiet Pawn Moves
+        bitboard = (bitboards[P] >> 8) & ~occupancies[both];
+
+        // Single Push
+        for (attacks = bitboard; attacks; unset_ls1b(attacks)) 
         {
-            source_square = get_ls1b_index(bitboard);
-
-            // Quiet Moves
-            target_square = source_square - 8;
-            if (!get_bit(occupancies[both], target_square))
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square + 8;
+            if (target_square <= h8)
             {
-                // Promotion
-                if (target_square <= h8)
-                {
-                    printf("Promote pawn %s\n", square_to_coordinates[source_square]);
-                }
-                else // Pawn pushes
-                {
-                    printf("Push pawn %s\n", square_to_coordinates[source_square]);
-
-                    if (source_square >= a2 && !get_bit(occupancies[both], target_square-8))
-                    {
-                        printf("Push pawn twice %s\n", square_to_coordinates[source_square]);
-                    }
-                }
+                printf("Push Pawn and Promote %s\n", square_to_coordinates[source_square]);
             }
-
-            // Captures
-            for (attacks = get_pawn_attacks(side, source_square) & occupancies[black]; attacks; unset_bit(attacks, target_square))
+            else
             {
-                target_square = get_ls1b_index(attacks);
+                printf("Push Pawn %s\n", square_to_coordinates[source_square]);
+            }
+        }
 
-                if (target_square <= h8)
-                {
-                    printf("Promote and capture with pawn %s\n", square_to_coordinates[source_square]);
-                }
-                else 
-                {
-                    printf("Capture with pawn %s\n", square_to_coordinates[source_square]);
-                }
+        // Double Push
+        for (attacks = (bitboard >> 8) & ~occupancies[both] & rank_4; attacks; unset_ls1b(attacks)) 
+        {
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square + 16;
+            printf("Double Push Pawn %s\n", square_to_coordinates[source_square]);
+        }
+
+        // Captures
+        for (attacks = (bitboards[P] >> 7) & not_a_file & occupancies[black]; attacks; unset_ls1b(attacks)) 
+        {
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square + 7;
+            if (target_square <= h8)
+            {
+                printf("Capture with Pawn and Promote %s\n", square_to_coordinates[source_square]);
+            }
+            else
+            {
+                printf("Capture with Pawn %s\n", square_to_coordinates[source_square]);
+            }
+        }
+        for (attacks = (bitboards[P] >> 9) & not_a_file & occupancies[black]; attacks; unset_ls1b(attacks)) 
+        {
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square + 9;
+            if (target_square <= h8)
+            {
+                printf("Capture with Pawn and Promote %s\n", square_to_coordinates[source_square]);
+            }
+            else
+            {
+                printf("Capture with Pawn %s\n", square_to_coordinates[source_square]);
             }
         }
     }
     else
     {
-        // Pawn Moves
-        for (bitboard = bitboards[p]; bitboard; unset_bit(bitboard, source_square))
+        // Quiet Pawn Moves
+        bitboard = (bitboards[p] << 8) & ~occupancies[both];
+
+        // Single Push
+        for (attacks = bitboard; attacks; unset_ls1b(attacks)) 
         {
-            source_square = get_ls1b_index(bitboard);
-
-            // Quiet Moves
-            target_square = source_square + 8;
-            if (!get_bit(occupancies[both], target_square))
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square - 8;
+            if (target_square >= a1)
             {
-                // Promotion
-                if (target_square >= a1)
-                {
-                    printf("Promote pawn %s\n", square_to_coordinates[source_square]);
-                }
-                else // Pawn pushes
-                {
-                    printf("Push pawn %s\n", square_to_coordinates[source_square]);
-
-                    if (source_square <= h7 && !get_bit(occupancies[both], target_square+8))
-                    {
-                        printf("Push pawn twice %s\n", square_to_coordinates[source_square]);
-                    }
-                }
+                printf("Push Pawn and Promote %s\n", square_to_coordinates[source_square]);
             }
-
-            // Captures
-            for (attacks = get_pawn_attacks(side, source_square) & occupancies[white]; attacks; unset_bit(attacks, target_square))
+            else
             {
-                target_square = get_ls1b_index(attacks);
+                printf("Push Pawn %s\n", square_to_coordinates[source_square]);
+            }
+        }
 
-                if (target_square >= a1)
-                {
-                    printf("Promote and capture with pawn %s\n", square_to_coordinates[source_square]);
-                }
-                else 
-                {
-                    printf("Capture with pawn %s\n", square_to_coordinates[source_square]);
-                }
+        // Double Push
+        for (attacks = (bitboard << 8) & ~occupancies[both] & rank_5; attacks; unset_ls1b(attacks)) 
+        {
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square - 16;
+            printf("Double Push Pawn %s\n", square_to_coordinates[source_square]);
+        }
+
+        // Captures
+        for (attacks = (bitboards[p] << 7) & not_h_file & occupancies[white]; attacks; unset_ls1b(attacks)) 
+        {
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square - 7;
+            if (target_square >= a1)
+            {
+                printf("Capture with Pawn and Promote %s\n", square_to_coordinates[source_square]);
+            }
+            else
+            {
+                printf("Capture with Pawn %s\n", square_to_coordinates[source_square]);
+            }
+        }
+        for (attacks = (bitboards[p] << 9) & not_a_file & occupancies[white]; attacks; unset_ls1b(attacks)) 
+        {
+            target_square = get_ls1b_index(attacks);
+            source_square = target_square - 9;
+            if (target_square >= a1)
+            {
+                printf("Capture with Pawn and Promote %s\n", square_to_coordinates[source_square]);
+            }
+            else
+            {
+                printf("Capture with Pawn %s\n", square_to_coordinates[source_square]);
             }
         }
     }
@@ -385,10 +411,10 @@ int main()
 
 
     //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1234");
-    parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPoP/R3K2R w KQkq - 0 1");
+    parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     //parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
-    side = black;
+    //side = black;
     
     print_board(1);
     generate_moves();

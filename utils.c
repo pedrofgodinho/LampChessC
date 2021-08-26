@@ -6,6 +6,10 @@ const U64 not_a_file = 0xfefefefefefefefeULL;
 const U64 not_h_file = 0x7f7f7f7f7f7f7f7fULL;
 const U64 not_hg_file = 0x3f3f3f3f3f3f3f3fULL;
 const U64 not_ab_file = 0xfcfcfcfcfcfcfcfcULL;
+const U64 rank_2 = 0x000ff000000000000ULL;
+const U64 rank_4 = 0x0000000ff00000000ULL;
+const U64 rank_5 = 0x000000000ff000000ULL;
+const U64 rank_7 = 0x0000000000000ff00ULL;
 const char *square_to_coordinates[] =
 {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
