@@ -3,12 +3,24 @@
 
 #include "utils.h"
 
+// Board structs
+typedef struct 
+{
+    U64 bitboards[12];
+    U64 occupancies[3];
+    int side;
+    int enpassant;
+    int castle;
+} board;
 
-typedef struct {
+typedef struct 
+{
     int moves[256];
     int count;
 } move_list;
 
+
+// Move macros
 #define encode_move(source, target, piece, promoted, capture, double_push, enpassant, castling) \
     (source) | (target << 6) | (piece << 12) | (promoted << 16) | \
     (capture << 20) | (double_push << 21) | (enpassant << 22) | (castling << 23)
@@ -28,11 +40,5 @@ typedef struct {
 #define get_move_enpassant(move)   ((move & 0x400000))
 #define get_move_castling(move)    ((move & 0x800000))
 
-
-U64 bitboards[12];
-U64 occupancies[3];
-int side;
-int enpassant;
-int castle;
 
 #endif
