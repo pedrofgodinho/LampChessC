@@ -549,12 +549,13 @@ void print_move(int move)
 
 void print_moves(move_list *moves)
 {
-    printf("\nmove\tpiece\tcapture\tdouble\tenpass\tcastling\n\n");
+    printf("\n\tmove\tpiece\tcapture\tdouble\tenpass\tcastling\n\n");
     for (int i = 0; i < moves->count; i++)
     {
         int move = moves->moves[i];
         int p = get_move_promoted(move);
-        printf("%s%s",
+        printf("%d\t%s%s",
+                i,
                 square_to_coordinates[get_move_source(move)],
                 square_to_coordinates[get_move_target(move)]);
         if (p)
@@ -573,40 +574,123 @@ void print_moves(move_list *moves)
 }
 
 
+void make_move(board *board, int move)
+{
+    int source_square = get_move_source(move);
+    int target_square = get_move_target(move);
+    int piece = get_move_piece(move);
+    int promoted = get_move_promoted(move);
+    int capture = get_move_capture(move);
+    int castling = get_move_castling(move);
+    int enpassant = get_move_enpassant(move);
+    int double_push = get_move_double_push(move);
+
+    // Remove the piece
+    unset_bit(board->bitboards[piece], source_square);
+    // Handle Capture
+    if (capture)
+    {
+        if (enpassant)
+        {
+            if (board->side == white)
+            {
+                unset_bit(board->bitboards[p], target_square + 8);
+                unset_bit(board->occupancies[black], target_square + 8);
+            }
+            else
+            {
+                unset_bit(board->bitboards[P], target_square - 8);
+                unset_bit(board->occupancies[white], target_square - 8);
+            }
+        }
+        else
+        {
+            for (int i = board->side * 6; i < 12; i++)
+            {
+                if (get_bit(board->bitboards[i], target_square))
+                {
+                    unset_bit(board->bitboards[i], target_square);
+                    unset_bit(board->occupancies[!board->side], target_square);
+                    break;
+                }
+            }
+        }
+    }
+    // Place the piece and handle promotion
+    if (promoted)
+        set_bit(board->bitboards[promoted], target_square);
+    else
+        set_bit(board->bitboards[piece], target_square);
+
+    // Update occupancies
+    unset_bit(board->occupancies[board->side], source_square);
+    set_bit(board->occupancies[board->side], target_square);
+    board->occupancies[both] = board->occupancies[white] | board->occupancies[black];
+
+    // Set enpassant on double pawn push
+    board->enpassant = no_square;
+    if (double_push)
+    {
+        if (board->side == white)
+            board->enpassant = target_square + 8;
+        else
+            board->enpassant = target_square - 8;
+    }
+
+    // Update flags
+    board->side = !board->side;
+    if (piece == K)
+        board->castle &= ~(wk | wq);
+    if (piece == k)
+        board->castle &= ~(bk | bq);
+    if (piece == R)
+    {
+        if (source_square == a1)
+            board->castle &= ~wq;
+        else if (source_square == h1)
+            board->castle &= ~wk;
+    }
+    else if (piece == r)
+    {
+        if (source_square == a8)
+            board->castle &= ~bq;
+        else if (source_square == h8)
+            board->castle &= ~bk;
+    }
+}
+
+
 // MAIN
 int main()
 {
     init_tables();
 
     board_stack *stack = malloc(sizeof(board_stack)); 
-    move_list *move_list = malloc(sizeof(move_list));
+    move_list *moves = malloc(sizeof(move_list));
+    memset(stack, 0ULL, sizeof(board_stack));
+    memset(moves, 0ULL, sizeof(move_list));
 
 
-    //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1234");
+    //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     //parse_fen(stack.boards, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     //parse_fen(&board, "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     
-    parse_fen(stack_current(stack), "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    
+    parse_fen(stack_current(stack), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    generate_moves(stack_current(stack), moves);
+    make_move(stack_current(stack), moves->moves[8]);
     print_board(stack_current(stack), 1);
-
-    stack_push(stack);
-
-    parse_fen(stack_current(stack), "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
+    generate_moves(stack_current(stack), moves);
+    make_move(stack_current(stack), moves->moves[8]);
     print_board(stack_current(stack), 1);
-
-    generate_moves(stack_current(stack), move_list);
-    print_moves(move_list);
-
-    stack_pop(stack);
-
+    generate_moves(stack_current(stack), moves);
+    make_move(stack_current(stack), moves->moves[0]);
     print_board(stack_current(stack), 1);
-
-
-    generate_moves(stack_current(stack), move_list);
-    print_moves(move_list);
+    print_moves(moves);
 
     free(stack);
-    free(move_list);
+    free(moves);
     return 0;
 }
