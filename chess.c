@@ -408,7 +408,7 @@ void generate_moves(board *board, move_list *moves)
                   is_square_attacked(board, f8, white)
                   ))
             {
-                add_move(moves, encode_move(e8, g8, K, 0, 0, 0, 0, 1));
+                add_move(moves, encode_move(e8, g8, k, 0, 0, 0, 0, 1));
             }
         }
         // Castling Queenside
@@ -422,7 +422,7 @@ void generate_moves(board *board, move_list *moves)
                   ))
             {
                 printf("Castle Queenside\n");
-                add_move(moves, encode_move(e8, c8, K, 0, 0, 0, 0, 1));
+                add_move(moves, encode_move(e8, c8, k, 0, 0, 0, 0, 1));
             }
         }
     }
@@ -585,6 +585,28 @@ void make_move(board *board, int move)
     int enpassant = get_move_enpassant(move);
     int double_push = get_move_double_push(move);
 
+    // Update flags
+    board->side = !board->side;
+    if (piece == K)
+        board->castle &= ~(wk | wq);
+    if (piece == k)
+        board->castle &= ~(bk | bq);
+    if (piece == R)
+    {
+        if (source_square == a1)
+            board->castle &= ~wq;
+        else if (source_square == h1)
+            board->castle &= ~wk;
+    }
+    else if (piece == r)
+    {
+        if (source_square == a8)
+            board->castle &= ~bq;
+        else if (source_square == h8)
+            board->castle &= ~bk;
+    }
+
+
     // Remove the piece
     unset_bit(board->bitboards[piece], source_square);
     // Handle Capture
@@ -637,25 +659,36 @@ void make_move(board *board, int move)
             board->enpassant = target_square - 8;
     }
 
-    // Update flags
-    board->side = !board->side;
-    if (piece == K)
-        board->castle &= ~(wk | wq);
-    if (piece == k)
-        board->castle &= ~(bk | bq);
-    if (piece == R)
+    // Handle Castling
+    if (castling)
     {
-        if (source_square == a1)
-            board->castle &= ~wq;
-        else if (source_square == h1)
-            board->castle &= ~wk;
-    }
-    else if (piece == r)
-    {
-        if (source_square == a8)
-            board->castle &= ~bq;
-        else if (source_square == h8)
-            board->castle &= ~bk;
+        switch (target_square)
+        {
+            case g1: // white king
+                unset_bit(board->bitboards[R], h1);
+                set_bit(board->bitboards[R], f1);
+                unset_bit(board->occupancies[white], h1);
+                set_bit(board->occupancies[white], f1);
+                break;
+            case c1: // white queen
+                unset_bit(board->bitboards[R], a1);
+                set_bit(board->bitboards[R], d1);
+                unset_bit(board->occupancies[white], a1);
+                set_bit(board->occupancies[white], d1);
+                break;
+            case g8: // black king
+                unset_bit(board->bitboards[r], h8);
+                set_bit(board->bitboards[r], f8);
+                unset_bit(board->occupancies[black], h8);
+                set_bit(board->occupancies[black], f8);
+                break;
+            case c8: // black queen
+                unset_bit(board->bitboards[r], a8);
+                set_bit(board->bitboards[r], d8);
+                unset_bit(board->occupancies[black], a8);
+                set_bit(board->occupancies[black], d8);
+                break;
+        }
     }
 }
 
@@ -677,16 +710,13 @@ int main()
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     
     
-    parse_fen(stack_current(stack), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    parse_fen(stack_current(stack), "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
 
     generate_moves(stack_current(stack), moves);
-    make_move(stack_current(stack), moves->moves[8]);
+    make_move(stack_current(stack), moves->moves[9]);
     print_board(stack_current(stack), 1);
     generate_moves(stack_current(stack), moves);
-    make_move(stack_current(stack), moves->moves[8]);
-    print_board(stack_current(stack), 1);
-    generate_moves(stack_current(stack), moves);
-    make_move(stack_current(stack), moves->moves[0]);
+    make_move(stack_current(stack), moves->moves[9]);
     print_board(stack_current(stack), 1);
     print_moves(moves);
 
