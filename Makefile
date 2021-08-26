@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Wextra
-DEPS = tables.h utils.h
+DEPS = tables.h utils.h chess.h
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
