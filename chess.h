@@ -19,8 +19,24 @@ typedef struct
     int count;
 } move_list;
 
+typedef struct
+{
+    board boards[512];
+    int ply;
+} board_stack;
 
-// Move macros
+
+// Stack Macros
+#define stack_push(stack) \
+    do { \
+        memcpy(stack->boards + stack->ply+1, stack->boards + stack->ply, sizeof(board)); \
+        stack->ply++; \
+    } while(0)
+#define stack_pop(stack) (stack->ply--)
+#define stack_current(stack) (stack->boards + stack->ply)
+
+
+// Move Macros
 #define encode_move(source, target, piece, promoted, capture, double_push, enpassant, castling) \
     (source) | (target << 6) | (piece << 12) | (promoted << 16) | \
     (capture << 20) | (double_push << 21) | (enpassant << 22) | (castling << 23)

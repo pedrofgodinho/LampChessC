@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include "tables.h"
 #include "chess.h"
 
@@ -141,7 +141,6 @@ void parse_fen(board *board, char *fen)
     }
     board->occupancies[both] = board->occupancies[white] | board->occupancies[black];
 }
-
 
 void print_bitboard(U64 bitboard)
 {
@@ -579,20 +578,35 @@ int main()
 {
     init_tables();
 
-    board board;
+    board_stack *stack = malloc(sizeof(board_stack)); 
+    move_list *move_list = malloc(sizeof(move_list));
 
 
     //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1234");
-    parse_fen(&board, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    //parse_fen(stack.boards, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     //parse_fen(&board, "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
-    //parse_fen("r3k2r/pPppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     
-    move_list move_list[1];
+    parse_fen(stack_current(stack), "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    print_board(stack_current(stack), 1);
 
-    print_board(&board, 1);
-    generate_moves(&board, move_list);
+    stack_push(stack);
 
+    parse_fen(stack_current(stack), "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
+    print_board(stack_current(stack), 1);
+
+    generate_moves(stack_current(stack), move_list);
     print_moves(move_list);
+
+    stack_pop(stack);
+
+    print_board(stack_current(stack), 1);
+
+
+    generate_moves(stack_current(stack), move_list);
+    print_moves(move_list);
+
+    free(stack);
+    free(move_list);
     return 0;
 }
