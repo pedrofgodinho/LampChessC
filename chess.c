@@ -574,7 +574,7 @@ void print_moves(move_list *moves)
 }
 
 
-void make_move(board *board, int move)
+int make_move(board *board, int move)
 {
     int source_square = get_move_source(move);
     int target_square = get_move_target(move);
@@ -690,6 +690,9 @@ void make_move(board *board, int move)
                 break;
         }
     }
+
+    // TODO filter out pseudo-legal moves better
+    return !is_square_attacked(board, get_ls1b_index((board->side == white) ? board->bitboards[k] : board->bitboards[K]), board->side);
 }
 
 
@@ -710,15 +713,23 @@ int main()
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     
     
-    parse_fen(stack_current(stack), "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    parse_fen(stack_current(stack), "r3k2r/p1ppRpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1");
 
     generate_moves(stack_current(stack), moves);
-    make_move(stack_current(stack), moves->moves[9]);
-    print_board(stack_current(stack), 1);
-    generate_moves(stack_current(stack), moves);
-    make_move(stack_current(stack), moves->moves[9]);
-    print_board(stack_current(stack), 1);
-    print_moves(moves);
+    int c = 0;
+    for (int i = 0; i < moves->count; i++)
+    {
+        stack_push(stack);
+        if (make_move(stack_current(stack), moves->moves[i]))
+        {
+            c++;
+            print_board(stack_current(stack), 1);
+        }
+        stack_pop(stack);
+    }
+    printf("%d\n", c);
+    //print_board(stack_current(stack), 1);
+    //print_moves(moves);
 
     free(stack);
     free(moves);
