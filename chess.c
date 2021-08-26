@@ -470,6 +470,111 @@ void generate_moves()
             }
         }
     }
+
+    // Knight Moves
+    for (bitboard = bitboards[side == white ? N : n]; bitboard; unset_ls1b(bitboard)) // Could be made branchless, explore later
+    {
+        source_square = get_ls1b_index(bitboard);
+
+        for (attacks = get_knight_attacks(source_square) & ~occupancies[side]; attacks; unset_ls1b(attacks))
+        {
+            target_square = get_ls1b_index(attacks);
+
+            // quiet or capture?
+            if (get_bit(occupancies[!side], target_square))
+            {
+                printf("Knight Capture %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+            else
+            {
+                printf("Knight move %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+        }
+    }
+    
+    // Bishop Moves
+    for (bitboard = bitboards[side == white ? B : b]; bitboard; unset_ls1b(bitboard)) // Could be made branchless, explore later
+    {
+        source_square = get_ls1b_index(bitboard);
+
+        for (attacks = get_bishop_attacks(source_square, occupancies[both]) & ~occupancies[side]; attacks; unset_ls1b(attacks))
+        {
+            target_square = get_ls1b_index(attacks);
+
+            // quiet or capture?
+            if (get_bit(occupancies[!side], target_square))
+            {
+                printf("Bishop Capture %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+            else
+            {
+                printf("Bishop move %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+        }
+    }
+
+    // Rook Moves
+    for (bitboard = bitboards[side == white ? R : r]; bitboard; unset_ls1b(bitboard)) // Could be made branchless, explore later
+    {
+        source_square = get_ls1b_index(bitboard);
+
+        for (attacks = get_rook_attacks(source_square, occupancies[both]) & ~occupancies[side]; attacks; unset_ls1b(attacks))
+        {
+            target_square = get_ls1b_index(attacks);
+
+            // quiet or capture?
+            if (get_bit(occupancies[!side], target_square))
+            {
+                printf("Rook Capture %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+            else
+            {
+                printf("Rook move %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+        }
+    }
+
+    // Queen Moves
+    for (bitboard = bitboards[side == white ? Q : q]; bitboard; unset_ls1b(bitboard)) // Could be made branchless, explore later
+    {
+        source_square = get_ls1b_index(bitboard);
+
+        for (attacks = (get_bishop_attacks(source_square, occupancies[both]) | get_rook_attacks(source_square, occupancies[both])) & ~occupancies[side]; attacks; unset_ls1b(attacks))
+        {
+            target_square = get_ls1b_index(attacks);
+
+            // quiet or capture?
+            if (get_bit(occupancies[!side], target_square))
+            {
+                printf("Queen Capture %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+            else
+            {
+                printf("Queen move %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+        }
+    }
+
+    // King Moves
+    for (bitboard = bitboards[side == white ? K : k]; bitboard; unset_ls1b(bitboard)) // Could be made branchless, explore later
+    {
+        source_square = get_ls1b_index(bitboard);
+
+        for (attacks = get_king_attacks(source_square) & ~occupancies[side]; attacks; unset_ls1b(attacks))
+        {
+            target_square = get_ls1b_index(attacks);
+
+            // quiet or capture?
+            if (get_bit(occupancies[!side], target_square))
+            {
+                printf("King Capture %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+            else
+            {
+                printf("King move %s%s\n", square_to_coordinates[source_square], square_to_coordinates[target_square]);
+            }
+        }
+    }
 }
 
 
@@ -480,7 +585,7 @@ int main()
 
 
     //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq e2 0 1234");
-    parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1");
     //parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     //side = black;
