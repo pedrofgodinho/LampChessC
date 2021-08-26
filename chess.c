@@ -4,6 +4,7 @@
 #include "tables.h"
 #include "chess.h"
 
+
 void init_board()
 {
     for (int i = 0; i < 12; i++)
@@ -68,6 +69,97 @@ void init_board()
     enpassant = no_square;
     castle = wk | wq | bk | bq;
 }
+
+
+// Move Generation
+int is_square_attacked(int square, int side)
+{
+    // queens
+    if (get_queen_attacks(square, occupancies[both]) & ((side == white) ? bitboards[Q] : bitboards[q])) return 1;
+    // rooks
+    if (get_rook_attacks(square, occupancies[both]) & ((side == white) ? bitboards[R] : bitboards[r])) return 1;    
+    // bishops
+    if (get_bishop_attacks(square, occupancies[both]) & ((side == white) ? bitboards[B] : bitboards[b])) return 1;
+    // knights
+    if (get_knight_attacks(square) & ((side == white) ? bitboards[N] : bitboards[n])) return 1;
+    // pawns
+    if ((side == white) && (get_pawn_attacks(black, square) & bitboards[P])) return 1;
+    if ((side == black) && (get_pawn_attacks(white, square) & bitboards[p])) return 1;
+    // kings
+    if (get_king_attacks(square) & ((side == white) ? bitboards[K] : bitboards[k])) return 1;
+
+    return 0;
+}
+
+
+void generate_moves()
+{
+    int source_square, target_square;
+    U64 bitboard, attacks;
+
+    // Side dependent moves
+    if (side == white)
+    {
+        // Pawn Moves
+        bitboard = bitboards[P];
+        while (bitboard)
+        {
+            source_square = get_ls1b_index(bitboard);
+            target_square = source_square - 8;
+
+            if (!get_bit(occupancies[both], target_square))
+            {
+                // Promotion
+                if (target_square <= h8)
+                {
+                    // TODO move list
+                    printf("Promote pawn %s\n", square_to_coordinates[source_square]);
+                }
+                else // Pawn pushes
+                {
+                    printf("Push pawn %s\n", square_to_coordinates[source_square]);
+
+                    if (source_square >= a2 && !get_bit(occupancies[both], target_square-8))
+                    {
+                        printf("Push pawn twice %s\n", square_to_coordinates[source_square]);
+                    }
+                }
+            }
+            unset_bit(bitboard, source_square);
+        }
+    }
+    else
+    {
+        // Pawn Moves
+        bitboard = bitboards[p];
+        while (bitboard)
+        {
+            source_square = get_ls1b_index(bitboard);
+            target_square = source_square + 8;
+
+            if (!get_bit(occupancies[both], target_square))
+            {
+                // Promotion
+                if (target_square >= a1)
+                {
+                    // TODO move list
+                    printf("Promote pawn %s\n", square_to_coordinates[source_square]);
+                }
+                else // Pawn pushes
+                {
+                    printf("Push pawn %s\n", square_to_coordinates[source_square]);
+
+                    if (source_square <= h7 && !get_bit(occupancies[both], target_square+8))
+                    {
+                        printf("Push pawn twice %s\n", square_to_coordinates[source_square]);
+                    }
+                }
+            }
+            unset_bit(bitboard, source_square);
+        }
+    }
+}
+
 
 
 // IO
@@ -227,7 +319,7 @@ void print_board(int unicode)
 {
     for (int rank = 0; rank < 8; rank++)
     {
-        printf(" %c  ", 'a' + rank);
+        printf(" %c  ", '8' - rank);
         for (int file = 0; file < 8; file++)
         {
             int square = rank * 8 + file;
@@ -249,7 +341,7 @@ void print_board(int unicode)
         }
         printf("\n");
     }
-    printf("\n    1 2 3 4 5 6 7 8\n\n");
+    printf("\n    a b c d e f g h\n\n");
     printf("    Side to move: %s\n", side == white ? "white" : "black");
     printf("    EnPassant Square: %s\n", square_to_coordinates[enpassant]);
     printf("    Castle Rights: %c%c%c%c \n\n", 
@@ -270,8 +362,10 @@ int main()
     //parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
     //parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
+    side = black;
     
     print_board(1);
+    generate_moves();
     
     return 0;
 }
