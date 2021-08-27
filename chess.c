@@ -763,7 +763,7 @@ u64 divide(board_stack_t *stack, int depth)
     // Perft with per move count
 
     move_list_t move_list;
-    int i, prev;
+    int i, prev, p;
     u64 nodes = 0;
 
     generate_moves(stack_current(stack), &move_list);
@@ -777,11 +777,51 @@ u64 divide(board_stack_t *stack, int depth)
         {
             prev = nodes;
             nodes += perft(stack, depth - 1);
-            print_move(move_list.moves[i]);
-            printf("\t%lld\n", nodes - prev);
+            p = get_move_promoted(move_list.moves[i]);
+            printf("%s%s", square_to_coordinates[get_move_source(move_list.moves[i])],
+                           square_to_coordinates[get_move_target(move_list.moves[i])]);
+            if (p)
+            {
+                printf("%c", tolower(ascii_pieces[p]));
+            }
+            printf(": %lld\n", nodes - prev);
         }
         stack_pop(stack);
     }
+    return nodes;
+}
+
+u64 timed_perft(board_stack_t *stack, int depth)
+{
+    u64 nodes;
+    double secs;
+
+    printf("Running perft depth %d...\n", depth);
+    struct timeval stop, start;
+    gettimeofday(&start, NULL);
+    nodes = perft(stack, depth);
+    gettimeofday(&stop, NULL);
+
+    secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+    printf("Searched %llu nodes in %fs (%.1fnps)\n", nodes, secs, (double) nodes / secs);
+
+    return nodes;
+}
+
+u64 timed_divide(board_stack_t *stack, int depth)
+{
+    u64 nodes;
+    double secs;
+
+    printf("Running perft depth %d...\n", depth);
+    struct timeval stop, start;
+    gettimeofday(&start, NULL);
+    nodes = divide(stack, depth);
+    gettimeofday(&stop, NULL);
+
+    secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+    printf("Searched %llu nodes in %fs (%.1fnps)\n", nodes, secs, (double) nodes / secs);
+
     return nodes;
 }
 
@@ -792,22 +832,12 @@ u64 divide(board_stack_t *stack, int depth)
 int main()
 {
     init_tables();
-    u64 nodes;
-    double secs;
 
     board_stack_t *stack = malloc(sizeof(board_stack_t)); 
     memset(stack, 0ULL, sizeof(board_stack_t));
 
     parse_fen(stack_current(stack), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
-    printf("Running perft depth 6...\n");
-    struct timeval stop, start;
-    gettimeofday(&start, NULL);
-    nodes = divide(stack, 6);
-    gettimeofday(&stop, NULL);
-
-    secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
-    printf("Searched %llu nodes in %fs (%.1fnps)\n", nodes, secs, (double) nodes / secs);
+    timed_perft(stack, 7);
 
     free(stack);
     return 0;
