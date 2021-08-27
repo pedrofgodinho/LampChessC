@@ -7,9 +7,14 @@
 #include "chess.h"
 
 
-// IO
-void parse_fen(board *board, char *fen)
+/*******************************
+ * Basic IO
+ *******************************/
+void parse_fen(board_t *board, char *fen)
 {
+    // This function is beyond ugly but it's not performance critical and it's safe regardless of input fen validity. 
+    // Might make this function a bit nicer later.
+
     int i = 0;
     int fen_len = strlen(fen);
 
@@ -143,8 +148,10 @@ void parse_fen(board *board, char *fen)
     board->occupancies[both] = board->occupancies[white] | board->occupancies[black];
 }
 
-void print_bitboard(U64 bitboard)
+void print_bitboard(u64 bitboard)
 {
+    // Prints a u64 bitboard
+
     for (int rank = 0; rank < 8; rank++)
     {
         for (int file = 0; file < 8; file++)
@@ -159,8 +166,11 @@ void print_bitboard(U64 bitboard)
     printf("      Bitboard: 0x%llx\n\n", bitboard);
 }
 
-void print_board(board *board, int unicode)
+void print_board(board_t *board, int unicode)
 {
+    // Prints a chess board to the terminal. If unicode is enabled, it will use unicode chess pieces
+
+    // Pieces
     for (int rank = 0; rank < 8; rank++)
     {
         printf(" %c  ", '8' - rank);
@@ -186,6 +196,8 @@ void print_board(board *board, int unicode)
         printf("\n");
     }
     printf("\n    a b c d e f g h\n\n");
+
+    // Flags
     printf("    Side to move: %s\n", board->side == white ? "white" : "black");
     printf("    EnPassant Square: %s\n", square_to_coordinates[board->enpassant]);
     printf("    Castle Rights: %c%c%c%c \n\n", 
@@ -196,10 +208,56 @@ void print_board(board *board, int unicode)
             );
 }
 
-
-// Move Generation
-int is_square_attacked(board *board, int square, int side)
+void print_move(int move)
 {
+    // Prints a piece in UCI format
+    int p = get_move_promoted(move);
+    printf("%s%s", square_to_coordinates[get_move_source(move)],
+                   square_to_coordinates[get_move_target(move)]);
+    if (p)
+    {
+        printf("%c", tolower(ascii_pieces[p]));
+    }
+    printf("\n");
+}
+
+void print_moves(move_list_t *moves)
+{
+    // Prints a list of moves.
+
+    printf("\n\tmove\tpiece\tcapture\tdouble\tenpass\tcastling\n\n");
+    for (int i = 0; i < moves->count; i++)
+    {
+        int move = moves->moves[i];
+        int p = get_move_promoted(move);
+        printf("%d\t%s%s",
+                i,
+                square_to_coordinates[get_move_source(move)],
+                square_to_coordinates[get_move_target(move)]);
+        if (p)
+        {
+            printf("%c", tolower(ascii_pieces[p]));
+        }
+        printf("\t%c\t%s\t%s\t%s\t%s\n",
+                ascii_pieces[get_move_piece(move)],
+                get_move_capture(move) ? "yes" : "no",
+                get_move_double_push(move) ? "yes" : "no",
+                get_move_enpassant(move) ? "yes" : "no",
+                get_move_castling(move) ? "yes" : "no"
+                );
+    }
+    printf("\nNumber of Moves: %d\n\n", moves->count);
+}
+
+
+/*******************************
+ * Move Generation
+ *******************************/
+int is_square_attacked(board_t *board, int square, int side)
+{
+    // Returns whether the square is attacked by a side. 
+    // Ex: (board, e1, white) will return 1 if white attacks e1
+
     // queens
     if (get_queen_attacks(square, board->occupancies[both]) & ((side == white) ? board->bitboards[Q] : board->bitboards[q])) return 1;
     // rooks
@@ -217,11 +275,12 @@ int is_square_attacked(board *board, int square, int side)
     return 0;
 }
 
-
-void generate_moves(board *board, move_list *moves)
+void generate_moves(board_t *board, move_list_t *moves)
 {
+    // Generates pseudo-legal moves into a move list
+
     int source_square, target_square;
-    U64 bitboard, attacks;
+    u64 bitboard, attacks;
 
     moves->count = 0;
 
@@ -534,48 +593,14 @@ void generate_moves(board *board, move_list *moves)
 }
 
 
-void print_move(int move)
+/*******************************
+ * Board Manipulation
+ *******************************/
+int make_move(board_t *board, int move)
 {
-    int p = get_move_promoted(move);
-    printf("%s%s", square_to_coordinates[get_move_source(move)],
-                   square_to_coordinates[get_move_target(move)]);
-    if (p)
-    {
-        printf("%c", tolower(ascii_pieces[p]));
-    }
-    printf("\n");
-}
+    // Tries to make a move on the board. If the king would've been left in check, returns 0, else returns 1
+    // If zero is returned, the move is still made. It is the caller's responsibility to undo it.
 
-
-void print_moves(move_list *moves)
-{
-    printf("\n\tmove\tpiece\tcapture\tdouble\tenpass\tcastling\n\n");
-    for (int i = 0; i < moves->count; i++)
-    {
-        int move = moves->moves[i];
-        int p = get_move_promoted(move);
-        printf("%d\t%s%s",
-                i,
-                square_to_coordinates[get_move_source(move)],
-                square_to_coordinates[get_move_target(move)]);
-        if (p)
-        {
-            printf("%c", tolower(ascii_pieces[p]));
-        }
-        printf("\t%c\t%s\t%s\t%s\t%s\n",
-                ascii_pieces[get_move_piece(move)],
-                get_move_capture(move) ? "yes" : "no",
-                get_move_double_push(move) ? "yes" : "no",
-                get_move_enpassant(move) ? "yes" : "no",
-                get_move_castling(move) ? "yes" : "no"
-                );
-    }
-    printf("\nNumber of Moves: %d\n\n", moves->count);
-}
-
-
-int make_move(board *board, int move)
-{
     int source_square = get_move_source(move);
     int target_square = get_move_target(move);
     int piece = get_move_piece(move);
@@ -705,12 +730,17 @@ int make_move(board *board, int move)
     return !is_square_attacked(board, get_ls1b_index((board->side == white) ? board->bitboards[k] : board->bitboards[K]), board->side);
 }
 
-// Perf
-U64 perft(board_stack *stack, int depth)
+
+/*******************************
+ * Perft
+ *******************************/
+u64 perft(board_stack_t *stack, int depth)
 {
-    move_list move_list;
+    // Executes a perft
+
+    move_list_t move_list;
     int i;
-    U64 nodes = 0;
+    u64 nodes = 0;
 
     if (depth == 0)
         return 1ULL;
@@ -728,11 +758,13 @@ U64 perft(board_stack *stack, int depth)
     return nodes;
 }
 
-U64 divide(board_stack *stack, int depth)
+u64 divide(board_stack_t *stack, int depth)
 {
-    move_list move_list;
+    // Perft with per move count
+
+    move_list_t move_list;
     int i, prev;
-    U64 nodes = 0;
+    u64 nodes = 0;
 
     generate_moves(stack_current(stack), &move_list);
 
@@ -754,22 +786,18 @@ U64 divide(board_stack *stack, int depth)
 }
 
 
-// MAIN
+/*******************************
+ * Main Function
+ *******************************/
 int main()
 {
     init_tables();
-    U64 nodes;
+    u64 nodes;
     double secs;
 
-    board_stack *stack = malloc(sizeof(board_stack)); 
-    memset(stack, 0ULL, sizeof(board_stack));
+    board_stack_t *stack = malloc(sizeof(board_stack_t)); 
+    memset(stack, 0ULL, sizeof(board_stack_t));
 
-
-    //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    //parse_fen(stack.boards, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-    //parse_fen(&board, "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
-    //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
-    
     parse_fen(stack_current(stack), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     printf("Running perft depth 6...\n");

@@ -1,10 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-// bitboard type
-#define U64 unsigned long long
+/*******************************
+ * Bitboard Type
+ *******************************/
+#define u64 unsigned long long
 
-// Bit manipulation macros
+/*******************************
+ * Bit Manipulation Macros
+ *******************************/
 #define get_bit(bitboard, square) ((bitboard) & (1ULL << (square)))
 #define set_bit(bitboard, square) ((bitboard) |= (1ULL << (square)))
 #define unset_bit(bitboard, square) ((bitboard) &= ~(1ULL << (square)))
@@ -12,7 +16,9 @@
 #define get_ls1b_index(bitboard) __builtin_ffsll(bitboard) - 1
 #define unset_ls1b(bitboard) ((bitboard) &= (bitboard) - 1)
 
-// Enum for human readable names for squares
+/*******************************
+ * QoL Enums and Mappings
+ *******************************/
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -31,23 +37,26 @@ enum { wk = 1, wq = 2, bk = 4, bq = 8 };
 
 enum { P, N, B, R, Q, K, p, n, b, r, q, k };
 
-
-
 extern const char *square_to_coordinates[];
 extern const char *ascii_pieces;
 extern const char *unicode_pieces[];
 extern const int ascii_to_piece[]; 
 
-// Constants
-extern const U64 not_a_file;
-extern const U64 not_h_file;
-extern const U64 not_hg_file;
-extern const U64 not_ab_file;
-extern const U64 rank_2;
-extern const U64 rank_4;
-extern const U64 rank_5;
-extern const U64 rank_7;
 
+/*******************************
+ * Constants
+ *******************************/
+extern const u64 not_a_file;
+extern const u64 not_h_file;
+extern const u64 not_hg_file;
+extern const u64 not_ab_file;
+extern const u64 rank_4;
+extern const u64 rank_5;
+
+
+/*******************************
+ * Functions
+ *******************************/
 void die(char* msg);
 
 #endif

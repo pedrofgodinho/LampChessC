@@ -3,40 +3,46 @@
 
 #include "utils.h"
 
-// Board structs
+/*******************************
+ * Board Structs
+ *******************************/
 typedef struct 
 {
-    U64 bitboards[12];
-    U64 occupancies[3];
+    u64 bitboards[12];
+    u64 occupancies[3];
     int side;
     int enpassant;
     int castle;
-} board;
+} board_t;
 
 typedef struct 
 {
     int moves[256];
     int count;
-} move_list;
+} move_list_t;
 
 typedef struct
 {
-    board boards[512];
+    board_t boards[512];
     int ply;
-} board_stack;
+} board_stack_t;
 
 
-// Stack Macros
+/*******************************
+ * Stack Manipulation Macros
+ *******************************/
 #define stack_push(stack) \
     do { \
-        memcpy((stack)->boards + (stack)->ply+1, (stack)->boards + (stack)->ply, sizeof(board)); \
+        memcpy((stack)->boards + (stack)->ply+1, (stack)->boards + (stack)->ply, sizeof(board_t)); \
         (stack)->ply++; \
     } while(0)
 #define stack_pop(stack) ((stack)->ply--)
 #define stack_current(stack) ((stack)->boards + (stack)->ply)
 
 
-// Move Macros
+/*******************************
+ * Move Manipulation Macros
+ *******************************/
 #define encode_move(source, target, piece, promoted, capture, double_push, enpassant, castling) \
     (source) | ((target) << 6) | ((piece) << 12) | ((promoted) << 16) | \
     ((capture) << 20) | ((double_push) << 21) | ((enpassant) << 22) | ((castling) << 23)
