@@ -1,153 +1,16 @@
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <sys/time.h>
 #include "tables.h"
 #include "chess.h"
+#include "uci.h"
 
 
 /*******************************
  * Basic IO
  *******************************/
-void parse_fen(board_t *board, char *fen)
-{
-    // This function is beyond ugly but it's not performance critical and it's safe regardless of input fen validity. 
-    // Might make this function a bit nicer later.
-
-    int i = 0;
-    int fen_len = strlen(fen);
-
-    memset(board->bitboards, 0ULL, sizeof(board->bitboards));
-    memset(board->occupancies, 0ULL, sizeof(board->occupancies));
-    board->side = white;
-    board->enpassant = no_square;
-    board->castle = 0;
-
-    // TODO
-    int clock1 = 0;
-    int clock2 = 0;
-    
-    // Parse first part
-    for (int rank = 0; rank < 8; rank++)
-    {
-        for (int file = 0; file < 8; file++)
-        {
-            int square = rank * 8 + file;
-            if (i >= fen_len)
-                die("Invalid FEN");
-            unsigned char c = fen[i];
-            if (c == 'P' || c == 'p' || c == 'N' || c == 'n' ||
-                c == 'B' || c == 'b' || c == 'R' || c == 'r' ||
-                c == 'Q' || c == 'q' || c == 'K' || c == 'k')
-            {
-                set_bit(board->bitboards[ascii_to_piece[c]], square);
-                i++;
-            } else if (c >= '0' && c <= '8') {
-                file += c - '0' - 1;
-                i++;
-            } else if (c == '/') {
-                if (file != 0)
-                    die("Invalid FEN");
-                i++;
-                file = -1;
-            } else {
-                die("Invalid FEN");
-            }
-        }
-    }
-
-    // Parse second part
-    if (fen[i] != ' ')
-        die("Invalid FEN");
-
-    i++;
-    if (i + 8 > fen_len)
-        die("Invalid FEN");
-
-    if (fen[i] == 'w')
-        board->side = white;
-    else
-        board->side = black;
-
-    // parse third part
-    i++;
-    if (fen[i] != ' ')
-        die("Invalid FEN");
-    i++;
-
-    if (fen[i] == '-')
-    {
-        i++;
-    }
-    else
-    {
-        if (fen[i] == 'K')
-        {
-            board->castle |= wk;
-            i++;
-        }
-        if (fen[i] == 'Q')
-        {
-            board->castle |= wq;
-            i++;
-        }
-        if (fen[i] == 'k')
-        {
-            board->castle |= bk;
-            i++;
-        }
-        if (fen[i] == 'q')
-        {
-            board->castle |= bq;
-            i++;
-        }
-    }
-
-    i++;
-    if (fen[i] != '-')
-    {
-        if (i + 6 > fen_len)
-            die("Invalid FEN");
-        int file = fen[i] - 'a';
-        i++;
-        int rank = 8 - (fen[i] - '0');
-        board->enpassant = rank * 8 + file;
-    }
-    else
-        board->enpassant = no_square;
-
-    i++;
-    i++;
-    if (fen[i] > '9' || fen[i] < '0')
-        die("Invalid FEN");
-    while (fen[i] != ' ')
-    {
-        if (i + 2 >= fen_len)
-            die("invalid fen");
-        clock1 *= 10;
-        clock1 += fen[i] - '0';
-        i++;
-    }
-
-    i++;
-    if (fen[i] > '9' || fen[i] < '0')
-        die("Invalid FEN");
-    while (i < fen_len)
-    {
-        clock2 *= 10;
-        clock2 += fen[i] - '0';
-        i++;
-    }
-
-    for (int i = 0; i < 6; i++)
-    {
-        board->occupancies[white] |= board->bitboards[i];
-        board->occupancies[black] |= board->bitboards[i + 6];
-    }
-    board->occupancies[both] = board->occupancies[white] | board->occupancies[black];
-}
-
 void print_bitboard(u64 bitboard)
 {
     // Prints a u64 bitboard
@@ -206,19 +69,6 @@ void print_board(board_t *board, int unicode)
             board->castle & bk ? 'k' : '-',
             board->castle & bq ? 'q' : '-'
             );
-}
-
-void print_move(int move)
-{
-    // Prints a piece in UCI format
-    int p = get_move_promoted(move);
-    printf("%s%s", square_to_coordinates[get_move_source(move)],
-                   square_to_coordinates[get_move_target(move)]);
-    if (p)
-    {
-        printf("%c", tolower(ascii_pieces[p]));
-    }
-    printf("\n");
 }
 
 void print_moves(move_list_t *moves)
@@ -596,6 +446,18 @@ void generate_moves(board_t *board, move_list_t *moves)
 /*******************************
  * Board Manipulation
  *******************************/
+board_stack_t* make_stack()
+{
+    board_stack_t *stack = malloc(sizeof(board_stack_t)); 
+    memset(stack, 0ULL, sizeof(board_stack_t));
+    return stack;
+}
+
+void destroy_stack(board_stack_t* stack)
+{
+    free(stack);
+}
+
 int make_move(board_t *board, int move)
 {
     // Tries to make a move on the board. If the king would've been left in check, returns 0, else returns 1
@@ -832,13 +694,6 @@ u64 timed_divide(board_stack_t *stack, int depth)
 int main()
 {
     init_tables();
-
-    board_stack_t *stack = malloc(sizeof(board_stack_t)); 
-    memset(stack, 0ULL, sizeof(board_stack_t));
-
-    parse_fen(stack_current(stack), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    timed_perft(stack, 7);
-
-    free(stack);
+    start_uci();
     return 0;
 }

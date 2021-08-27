@@ -63,4 +63,23 @@ typedef struct
 #define get_move_castling(move)    (((move) & 0x800000))
 
 
+/*******************************
+ * Functions
+ *******************************/
+board_stack_t* make_stack();
+void destroy_stack(board_stack_t *stack);
+
+void generate_moves(board_t *board, move_list_t *moves);
+int make_move(board_t *board, int move);
+
+u64 perft(board_stack_t *stack, int depth);
+u64 divide(board_stack_t *stack, int depth);
+u64 timed_perft(board_stack_t *stack, int depth);
+u64 timed_divide(board_stack_t *stack, int depth);
+
+void print_bitboard(u64 bitboard);
+void print_board(board_t *board, int unicode);
+void print_moves(move_list_t *moves);
+
+
 #endif
