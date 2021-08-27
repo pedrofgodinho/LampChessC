@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include "tables.h"
 #include "chess.h"
 
@@ -585,28 +586,6 @@ int make_move(board *board, int move)
     int enpassant = get_move_enpassant(move);
     int double_push = get_move_double_push(move);
 
-    // Update flags
-    board->side = !board->side;
-    if (piece == K)
-        board->castle &= ~(wk | wq);
-    if (piece == k)
-        board->castle &= ~(bk | bq);
-    if (piece == R)
-    {
-        if (source_square == a1)
-            board->castle &= ~wq;
-        else if (source_square == h1)
-            board->castle &= ~wk;
-    }
-    else if (piece == r)
-    {
-        if (source_square == a8)
-            board->castle &= ~bq;
-        else if (source_square == h8)
-            board->castle &= ~bk;
-    }
-
-
     // Remove the piece
     unset_bit(board->bitboards[piece], source_square);
     // Handle Capture
@@ -627,7 +606,7 @@ int make_move(board *board, int move)
         }
         else
         {
-            for (int i = board->side * 6; i < 12; i++)
+            for (int i = !board->side * 6; i < 12; i++)
             {
                 if (get_bit(board->bitboards[i], target_square))
                 {
@@ -691,8 +670,77 @@ int make_move(board *board, int move)
         }
     }
 
+    // Update flags
+    board->side = !board->side;
+    if (piece == K)
+        board->castle &= ~(wk | wq);
+    if (piece == k)
+        board->castle &= ~(bk | bq);
+    if (piece == R)
+    {
+        if (source_square == a1)
+            board->castle &= ~wq;
+        else if (source_square == h1)
+            board->castle &= ~wk;
+    }
+    else if (piece == r)
+    {
+        if (source_square == a8)
+            board->castle &= ~bq;
+        else if (source_square == h8)
+            board->castle &= ~bk;
+    }
+
     // TODO filter out pseudo-legal moves better
     return !is_square_attacked(board, get_ls1b_index((board->side == white) ? board->bitboards[k] : board->bitboards[K]), board->side);
+}
+
+// Perf
+U64 perft(board_stack *stack, int depth)
+{
+  move_list move_list;
+  int i;
+  U64 nodes = 0;
+
+  if (depth == 0)
+      return 1ULL;
+
+  generate_moves(stack_current(stack), &move_list);
+
+  for (i = 0; i < move_list.count; i++) {
+    stack_push(stack);
+    if (make_move(stack_current(stack), move_list.moves[i]))
+    {
+        nodes += perft(stack, depth - 1);
+    }
+    stack_pop(stack);
+  }
+  return nodes;
+}
+
+U64 divide(board_stack *stack, int depth)
+{
+    move_list move_list;
+    int i, prev;
+    U64 nodes = 0;
+
+    generate_moves(stack_current(stack), &move_list);
+
+    if (depth == 0)
+        return 1ULL;
+
+    for (i = 0; i < move_list.count; i++) {
+        stack_push(stack);
+        if (make_move(stack_current(stack), move_list.moves[i]))
+        {
+            prev = nodes;
+            nodes += perft(stack, depth - 1);
+            print_move(move_list.moves[i]);
+            printf("\t%lld\n", nodes - prev);
+        }
+        stack_pop(stack);
+    }
+    return nodes;
 }
 
 
@@ -700,11 +748,11 @@ int make_move(board *board, int move)
 int main()
 {
     init_tables();
+    U64 nodes;
+    double secs;
 
     board_stack *stack = malloc(sizeof(board_stack)); 
-    move_list *moves = malloc(sizeof(move_list));
     memset(stack, 0ULL, sizeof(board_stack));
-    memset(moves, 0ULL, sizeof(move_list));
 
 
     //parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -712,26 +760,19 @@ int main()
     //parse_fen(&board, "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
     //parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     
-    
-    parse_fen(stack_current(stack), "r3k2r/p1ppRpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1");
+    parse_fen(stack_current(stack), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-    generate_moves(stack_current(stack), moves);
-    int c = 0;
-    for (int i = 0; i < moves->count; i++)
-    {
-        stack_push(stack);
-        if (make_move(stack_current(stack), moves->moves[i]))
-        {
-            c++;
-            print_board(stack_current(stack), 1);
-        }
-        stack_pop(stack);
-    }
-    printf("%d\n", c);
-    //print_board(stack_current(stack), 1);
-    //print_moves(moves);
+    printf("Running perft depth 6...\n");
+    struct timeval stop, start;
+    gettimeofday(&start, NULL);
+    nodes = perft(stack, 6);
+    gettimeofday(&stop, NULL);
+
+    secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
+    printf("Searched %llu nodes in %fs (%.1fnps)\n", nodes, secs, (double) nodes / secs);
+
+
 
     free(stack);
-    free(moves);
     return 0;
 }
