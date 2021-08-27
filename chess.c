@@ -422,7 +422,6 @@ void generate_moves(board *board, move_list *moves)
                   is_square_attacked(board, d8, white) 
                   ))
             {
-                printf("Castle Queenside\n");
                 add_move(moves, encode_move(e8, c8, k, 0, 0, 0, 0, 1));
             }
         }
@@ -606,6 +605,16 @@ int make_move(board *board, int move)
         }
         else
         {
+            // If capturing a piece on corner, disable castling that way
+            if (target_square == a1)
+                board->castle &= ~wq;
+            else if (target_square == h1)
+                board->castle &= ~wk;
+            else if (target_square == a8)
+                board->castle &= ~bq;
+            else if (target_square == h8)
+                board->castle &= ~bk;
+
             for (int i = !board->side * 6; i < 12; i++)
             {
                 if (get_bit(board->bitboards[i], target_square))
@@ -626,7 +635,6 @@ int make_move(board *board, int move)
     // Update occupancies
     unset_bit(board->occupancies[board->side], source_square);
     set_bit(board->occupancies[board->side], target_square);
-    board->occupancies[both] = board->occupancies[white] | board->occupancies[black];
 
     // Set enpassant on double pawn push
     board->enpassant = no_square;
@@ -690,6 +698,8 @@ int make_move(board *board, int move)
         else if (source_square == h8)
             board->castle &= ~bk;
     }
+
+    board->occupancies[both] = board->occupancies[white] | board->occupancies[black];
 
     // TODO filter out pseudo-legal moves better
     return !is_square_attacked(board, get_ls1b_index((board->side == white) ? board->bitboards[k] : board->bitboards[K]), board->side);
@@ -765,13 +775,11 @@ int main()
     printf("Running perft depth 6...\n");
     struct timeval stop, start;
     gettimeofday(&start, NULL);
-    nodes = perft(stack, 6);
+    nodes = divide(stack, 6);
     gettimeofday(&stop, NULL);
 
     secs = (double)(stop.tv_usec - start.tv_usec) / 1000000 + (double)(stop.tv_sec - start.tv_sec);
     printf("Searched %llu nodes in %fs (%.1fnps)\n", nodes, secs, (double) nodes / secs);
-
-
 
     free(stack);
     return 0;
