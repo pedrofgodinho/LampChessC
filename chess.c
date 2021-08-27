@@ -1,3 +1,5 @@
+//mingw printf fix for u64
+#define __USE_MINGW_ANSI_STDIO 1
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
