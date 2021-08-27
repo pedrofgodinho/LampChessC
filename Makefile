@@ -1,17 +1,16 @@
 CC=gcc
-DEPS = tables.h utils.h chess.h tables.c utils.c chess.c
+CFLAGS=-Wall -Wextra -Ofast
+DEPS = tables.h utils.h chess.h
+OBJ = tables.o utils.o chess.o
 
-chess: $(DEPS)
-	$(CC) -Ofast -o chess $(DEPS)
+%.o: %.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-chess.debug: $(DEPS)
-	$(CC) -g -o chess.debug $(DEPS)
+chess: tables.o utils.o chess.o
+	$(CC) -o chess tables.o utils.o chess.o $(CFLAGS)
 
 run: chess
 	./chess
 
-run.debug: chess.debug
-	./chess.debug
-
 clean:
-	rm -f chess chess.debug
+	rm -f chess *.o
