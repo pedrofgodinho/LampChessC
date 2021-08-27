@@ -708,24 +708,24 @@ int make_move(board *board, int move)
 // Perf
 U64 perft(board_stack *stack, int depth)
 {
-  move_list move_list;
-  int i;
-  U64 nodes = 0;
+    move_list move_list;
+    int i;
+    U64 nodes = 0;
 
-  if (depth == 0)
-      return 1ULL;
+    if (depth == 0)
+        return 1ULL;
 
-  generate_moves(stack_current(stack), &move_list);
+    generate_moves(stack_current(stack), &move_list);
 
-  for (i = 0; i < move_list.count; i++) {
-    stack_push(stack);
-    if (make_move(stack_current(stack), move_list.moves[i]))
-    {
-        nodes += perft(stack, depth - 1);
+    for (i = 0; i < move_list.count; i++) {
+        stack_push(stack);
+        if (make_move(stack_current(stack), move_list.moves[i]))
+        {
+            nodes += perft(stack, depth - 1);
+        }
+        stack_pop(stack);
     }
-    stack_pop(stack);
-  }
-  return nodes;
+    return nodes;
 }
 
 U64 divide(board_stack *stack, int depth)
