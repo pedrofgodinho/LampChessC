@@ -96,7 +96,6 @@ void init_ai()
                 pst[i][rank * 8 + file] = -pst[i - 6][(7 - rank) * 8 + file];
 }
 
-
 int evaluate(board_t *board)
 {
     int score = 0;
@@ -109,6 +108,6 @@ int evaluate(board_t *board)
         }
     }
 
-    return score;
+    return board->side == white ? score : -score;
 }
 
