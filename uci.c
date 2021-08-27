@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "uci.h"
 #include "chess.h"
+#include "ai.h"
 
 
 /*******************************
@@ -205,10 +206,6 @@ void print_move(int move)
     printf("\n");
 }
 
-void identify()
-{
-    printf("%s %s by %s\n", NAME, VERSION, AUTHOR);
-}
 
 /*******************************
  * UCI Command Parsing
@@ -288,11 +285,20 @@ void parse_go_command(char *command, board_stack_t *stack)
         }
         timed_divide(stack, atoi(command));
     }
-
+    else if (!strncmp(command, "depth ", 6))
+    {
+        printf("bestmove d2d4\n");
+    }
     else
     {
-        printf("Invalid go command\n");
+        printf("bestmove d2d4\n");
+        //printf("Invalid go command\n");
     }
+}
+
+void debug(board_stack_t *stack)
+{
+    printf("%d\n", evaluate(stack_current(stack)));
 }
 
 void start_uci()
@@ -302,8 +308,6 @@ void start_uci()
 
     setbuf(stdin, NULL);
     setbuf(stdout, NULL);
-
-    identify();
 
     while(fgets(input, MAX_INPUT, stdin) != NULL)
     {
@@ -339,6 +343,10 @@ void start_uci()
         else if (!strncmp(input, "d", 2))
         {
             print_board(stack_current(stack), 1);
+        }
+        else if (!strncmp(input, "debug", 6))
+        {
+            debug(stack);
         }
         else
         {

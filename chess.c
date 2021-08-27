@@ -8,6 +8,7 @@
 #include "tables.h"
 #include "chess.h"
 #include "uci.h"
+#include "ai.h"
 
 
 /*******************************
@@ -696,7 +697,9 @@ u64 timed_divide(board_stack_t *stack, int depth)
 int main()
 {
     init_tables();
+    init_ai();
 
+    printf("%s %s by %s\n", NAME, VERSION, AUTHOR);
     start_uci();
 
     return 0;
