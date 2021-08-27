@@ -694,6 +694,8 @@ u64 timed_divide(board_stack_t *stack, int depth)
 int main()
 {
     init_tables();
+
     start_uci();
+
     return 0;
 }

@@ -37,6 +37,7 @@ typedef struct
         (stack)->ply++; \
     } while(0)
 #define stack_pop(stack) ((stack)->ply--)
+#define stack_reset(stack) ((stack)->ply = 0)
 #define stack_current(stack) ((stack)->boards + (stack)->ply)
 
 

@@ -2,6 +2,9 @@
 #define UCI_H
 
 #define MAX_INPUT 2048 
+#define NAME "LampChess"
+#define VERSION "0.1"
+#define AUTHOR "Pedro Fernandez Godinho"
 
 
 /*******************************

@@ -194,7 +194,7 @@ int parse_move(board_t* board, char *move_str)
  *******************************/
 void print_move(int move)
 {
-    // Prints a piece in UCI format
+    // Prints a move in UCI format
     int p = get_move_promoted(move);
     printf("%s%s", square_to_coordinates[get_move_source(move)],
                    square_to_coordinates[get_move_target(move)]);
@@ -205,9 +205,13 @@ void print_move(int move)
     printf("\n");
 }
 
+void identify()
+{
+    printf("%s %s by %s\n", NAME, VERSION, AUTHOR);
+}
 
 /*******************************
- * UCI parsing
+ * UCI Command Parsing
  *******************************/
 void parse_position_command(char *command, board_stack_t *stack)
 {
@@ -222,6 +226,7 @@ void parse_position_command(char *command, board_stack_t *stack)
     if (!strncmp(command, "fen ", 4))
     {
         command += 4;
+        stack_reset(stack);
         res = parse_fen(stack_current(stack), command);
         if (!res)
             printf("Invalid fen\n");
@@ -229,6 +234,7 @@ void parse_position_command(char *command, board_stack_t *stack)
             command += res;
     } else if (!strncmp(command, "startpos", 8))
     {
+        stack_reset(stack);
         parse_fen(stack_current(stack), STARTPOS);
         command += 8;
     }
@@ -294,12 +300,35 @@ void start_uci()
     char *input = malloc(sizeof(char) * MAX_INPUT);
     board_stack_t *stack = make_stack();
 
+    setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
+
+    identify();
+
     while(fgets(input, MAX_INPUT, stdin) != NULL)
     {
         // Remove new line
         input[strlen(input) - 1] = '\0';
 
-        if (!strncmp(input, "position ", 9))
+        if (!strncmp(input, "uci", 4))
+        {
+            printf("id name %s %s\nid author %s\n", NAME, VERSION, AUTHOR);
+            printf("uciok\n");
+        }
+        else if (!strncmp(input, "isready", 8))
+        {
+            printf("readyok\n");
+        }
+        else if (!strncmp(input, "ucinewgame", 11))
+        {
+            destroy_stack(stack);
+            stack = make_stack();
+        }
+        else if (!strncmp(input, "quit", 5))
+        {
+            break;
+        }
+        else if (!strncmp(input, "position ", 9))
         {
             parse_position_command(input + 9, stack);
         } 
@@ -307,7 +336,7 @@ void start_uci()
         {
             parse_go_command(input + 3, stack);
         }
-        else if (!strncmp(input, "d", 1))
+        else if (!strncmp(input, "d", 2))
         {
             print_board(stack_current(stack), 1);
         }
