@@ -290,7 +290,7 @@ void parse_go_command(char *command, board_stack_t *stack)
     {
         int line;
         int score = alpha_beta(stack, -INF, INF, atoi(command+6), &line);
-        printf("info score cp %d depth %d nodes %lld\n", stack_current(stack)->side == white ? score : -score, atoi(command+6), searched_nodes);
+        printf("info score cp %d depth %d nodes %lld\n", score, atoi(command+6), searched_nodes);
         printf("bestmove ");
         print_move(line);
     }

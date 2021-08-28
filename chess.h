@@ -72,6 +72,7 @@ void destroy_stack(board_stack_t *stack);
 
 void generate_moves(board_t *board, move_list_t *moves);
 int make_move(board_t *board, int move);
+int make_move_if_capture(board_t *board, int move);
 int is_square_attacked(board_t *board, int square, int side);
 
 u64 perft(board_stack_t *stack, int depth);

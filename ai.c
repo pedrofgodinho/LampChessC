@@ -87,6 +87,22 @@ const int pst_aux[6][64] =
 
 int pst[12][64];
 
+const int mvv_lva[12][12] = {
+ 	105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+	104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+	103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+	102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+	101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600,
+
+	105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605,
+	104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604,
+	103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603,
+	102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602,
+	101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601,
+	100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
+};
+
 void init_ai()
 {
     for (int i = 0; i < 6; i++)
@@ -113,10 +129,43 @@ int evaluate(board_t *board)
     return board->side == white ? score : -score;
 }
 
+
+int quiensce(board_stack_t *stack, int alpha, int beta)
+{
+    int evaluation = evaluate(stack_current(stack));
+    if (evaluation>= beta)
+        return beta;
+    if (evaluation > alpha)
+        alpha = evaluation;
+
+    move_list_t moves;
+    int score;
+    searched_nodes++;
+
+    generate_moves(stack_current(stack), &moves);
+    for (int i = 0; i < moves.count; i++)
+    {
+        stack_push(stack);
+        if (!make_move_if_capture(stack_current(stack), moves.moves[i]))
+        {
+            stack_pop(stack);
+            continue;
+        }
+        score = -quiensce(stack, -beta, -alpha);
+        stack_pop(stack);
+        if (score >= beta)
+            return beta;
+        if (score > alpha)
+            alpha = score;
+    }
+
+    return alpha;
+}
+
 int alpha_beta_no_line(board_stack_t *stack, int alpha, int beta, int depth)
 {
     if (depth == 0)
-        return evaluate(stack_current(stack));
+        return quiensce(stack, alpha, beta);
 
     move_list_t moves;
     int score = 0;
@@ -153,7 +202,7 @@ int alpha_beta_no_line(board_stack_t *stack, int alpha, int beta, int depth)
 int alpha_beta(board_stack_t *stack, int alpha, int beta, int depth, int *line)
 {
     if (depth == 0)
-        return evaluate(stack_current(stack));
+        return quiensce(stack, alpha, beta);
 
     move_list_t moves;
     int score = 0;
@@ -190,5 +239,26 @@ int alpha_beta(board_stack_t *stack, int alpha, int beta, int depth, int *line)
     }
 
     return alpha;
+}
+
+int score_move(int move)
+{
+    // TODO
+    /*
+    if (get_move_capture(move))
+    {
+        for (int i = !board->side * 6; i < 12; i++)
+        {
+            if (get_bit(board->bitboards[i], target_square))
+            {
+            }
+        }
+        return mvv_lva[get_move_source(move)][];
+    }
+    else
+    {
+        return 0;
+    }
+    */
 }
 

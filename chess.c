@@ -595,6 +595,13 @@ int make_move(board_t *board, int move)
     return !is_square_attacked(board, get_ls1b_index((board->side == white) ? board->bitboards[k] : board->bitboards[K]), board->side);
 }
 
+int make_move_if_capture(board_t *board, int move)
+{
+    if (get_move_capture(move))
+        return make_move(board, move);
+    return 0;
+}
+
 
 /*******************************
  * Perft
