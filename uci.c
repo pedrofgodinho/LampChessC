@@ -1,3 +1,4 @@
+#define __USE_MINGW_ANSI_STDIO 1
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -241,9 +242,9 @@ void parse_position_command(char *command, board_stack_t *stack)
         return;
     }
 
-    if (*command && !strncmp(command, " move ", 6))
+    if (*command && !strncmp(command, " moves ", 7))
     {
-        command += 6;
+        command += 7;
         while ((move = parse_move(stack_current(stack), command)))
         {
             stack_push(stack);
@@ -287,18 +288,16 @@ void parse_go_command(char *command, board_stack_t *stack)
     }
     else if (!strncmp(command, "depth ", 6))
     {
-        printf("bestmove d2d4\n");
+        int line;
+        int score = alpha_beta(stack, -INF, INF, atoi(command+6), &line);
+        printf("info score cp %d depth %d nodes %lld\n", stack_current(stack)->side == white ? score : -score, atoi(command+6), searched_nodes);
+        printf("bestmove ");
+        print_move(line);
     }
     else
     {
-        printf("bestmove d2d4\n");
-        //printf("Invalid go command\n");
+        printf("Invalid go command\n");
     }
-}
-
-void debug(board_stack_t *stack)
-{
-    printf("%d\n", evaluate(stack_current(stack)));
 }
 
 void start_uci()
@@ -343,10 +342,6 @@ void start_uci()
         else if (!strncmp(input, "d", 2))
         {
             print_board(stack_current(stack), 1);
-        }
-        else if (!strncmp(input, "debug", 6))
-        {
-            debug(stack);
         }
         else
         {

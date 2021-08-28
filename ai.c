@@ -1,5 +1,7 @@
-#include "ai.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ai.h"
 
 // Alphazero Calculated Values
 const int material_value[] = 
@@ -109,5 +111,84 @@ int evaluate(board_t *board)
     }
 
     return board->side == white ? score : -score;
+}
+
+int alpha_beta_no_line(board_stack_t *stack, int alpha, int beta, int depth)
+{
+    if (depth == 0)
+        return evaluate(stack_current(stack));
+
+    move_list_t moves;
+    int score = 0;
+    int legal_moves = 0;
+    int in_check = is_square_attacked(stack_current(stack), get_ls1b_index(stack_current(stack)->side == white ? stack_current(stack)->bitboards[K] : stack_current(stack)->bitboards[k]), !white);
+    searched_nodes++;
+
+    generate_moves(stack_current(stack), &moves);
+    for (int i = 0; i < moves.count; i++)
+    {
+        stack_push(stack);
+        if (!make_move(stack_current(stack), moves.moves[i]))
+        {
+            stack_pop(stack);
+            continue;
+        }
+        legal_moves++;
+        score = -alpha_beta_no_line(stack, -beta, -alpha, depth - 1);
+        stack_pop(stack);
+        if (score >= beta)
+            return beta;
+        if (score > alpha)
+            alpha = score;
+    }
+    if (legal_moves == 0)
+    {
+        if (in_check)
+            return -MATE + stack->ply;
+        return 0;
+    }
+    return alpha;
+}
+
+int alpha_beta(board_stack_t *stack, int alpha, int beta, int depth, int *line)
+{
+    if (depth == 0)
+        return evaluate(stack_current(stack));
+
+    move_list_t moves;
+    int score = 0;
+    int legal_moves = 0;
+    int in_check = is_square_attacked(stack_current(stack), get_ls1b_index(stack_current(stack)->side == white ? stack_current(stack)->bitboards[K] : stack_current(stack)->bitboards[k]), !white);
+    searched_nodes = 0;
+    searched_nodes++;
+
+    generate_moves(stack_current(stack), &moves);
+    for (int i = 0; i < moves.count; i++)
+    {
+        stack_push(stack);
+        if (!make_move(stack_current(stack), moves.moves[i]))
+        {
+            stack_pop(stack);
+            continue;
+        }
+        legal_moves++;
+        score = -alpha_beta_no_line(stack, -beta, -alpha, depth - 1);
+        stack_pop(stack);
+        if (score >= beta)
+            return beta;
+        if (score > alpha)
+        {
+            alpha = score;
+            *line = moves.moves[i];
+        }
+    }
+    if (legal_moves == 0)
+    {
+        if (in_check)
+            return -MATE + stack->ply;
+        return 0;
+    }
+
+    return alpha;
 }
 
